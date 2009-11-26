@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require File.dirname(__FILE__) + '/helper'
 
 class TestTags < Test::Unit::TestCase
