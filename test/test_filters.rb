@@ -13,6 +13,11 @@ class TestFilters < Test::Unit::TestCase
     should "textilize with simple string" do
       assert_equal "<p>something <strong>really</strong> simple</p>", @filter.textilize("something *really* simple")
     end
+    
+    should "markdownize with simple string" do
+      assert_equal "<p>something <strong>really</strong> simple</p>\n",
+      @filter.markdownize("something **really** simple")
+    end
 
     should "convert array to sentence string with no args" do
       assert_equal "", @filter.array_to_sentence_string([])

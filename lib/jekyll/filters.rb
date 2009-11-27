@@ -4,6 +4,11 @@ module Jekyll
     def textilize(input)
       RedCloth.new(input).to_html
     end
+    
+    def markdownize(input)
+      require 'rdiscount'
+      RDiscount.new(input).to_html
+    end
 
     def date_to_string(date)
       date.strftime("%d %b %Y")
