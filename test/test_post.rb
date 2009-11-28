@@ -80,6 +80,21 @@ class TestPost < Test::Unit::TestCase
           assert_equal "\r\nThis is the content", @post.content
         end
       end
+      
+      context "with a more divider" do
+        setup do
+          @real_file = "2009-11-27-more-divider.markdown"
+        end
+        should "separate post into excerpt and remainder" do
+          @post.process(@real_file)
+          @post.read_yaml(@source, @real_file)
+          @post.transform
+
+          assert_equal "<p>Excerpt part</p>", @post.data['excerpt']
+          assert_equal "<p>Everything else</p>", @post.data['remainder']
+          assert_equal "<p>Excerpt part</p>\n<div id='more' />\n<p>Everything else</p>", @post.content
+        end
+      end
 
       context "with site wide permalink" do
         setup do
