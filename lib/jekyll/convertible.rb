@@ -28,10 +28,10 @@ module Jekyll
       if self.is_a? Jekyll::Post
         divider = /<!--\s*[Mm][Oo][Rr][Ee]\s*-->\s*\n/
         if self.content =~ divider
-          self.excerpt, self.remainder = self.content.split($&, 2)
-          self.content = self.excerpt +
+          self.data['excerpt'], self.data['remainder'] = self.content.split($&, 2)
+          self.content = self.data['excerpt'] +
                          "\n" + '<div id="more"></div>' + "\n" +
-                         self.remainder
+                         self.data['remainder']
         end
       end
     end
@@ -44,16 +44,16 @@ module Jekyll
       when 'textile'
         self.ext = ".html"
         self.content = self.site.textile(self.content)
-        if self.is_a? Jekyll::Post and self.excerpt
-          self.excerpt = self.site.textile(self.excerpt)
-          self.remainder = self.site.textile(self.remainder)
+        if self.is_a? Jekyll::Post and self.data['excerpt']
+          self.data['excerpt'] = self.site.textile(self.data['excerpt'])
+          self.data['remainder'] = self.site.textile(self.data['remainder'])
         end
       when 'markdown'
         self.ext = ".html"
         self.content = self.site.markdown(self.content)
-        if self.is_a? Jekyll::Post and self.excerpt
-          self.excerpt = self.site.markdown(self.excerpt)
-          self.remainder = self.site.markdown(self.remainder)
+        if self.is_a? Jekyll::Post and self.data['excerpt']
+          self.data['excerpt'] = self.site.markdown(self.data['excerpt'])
+          self.data['remainder'] = self.site.markdown(self.data['remainder'])
         end
       end
     end
@@ -89,8 +89,8 @@ module Jekyll
       self.output = self.content
       if self.is_a? Jekyll::Post
         payload["page"].merge!({"content" => self.content,
-                                "excerpt" => self.excerpt,
-                                "remainder" => self.remainder})
+                                "excerpt" => self.data['excerpt'],
+                                "remainder" => self.data['remainder']})
       end
 
       # recursively render layouts

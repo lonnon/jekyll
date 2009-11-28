@@ -62,7 +62,7 @@ Given /^I have the following posts?(?: (.*) "(.*)")?:$/ do |direction, folder, t
     end
     matter = matter_hash.map { |k, v| "#{k}: #{v}\n" }.join.chomp
 
-    content = post['content']
+    content = post['content'].gsub('\n', "\n")
     if post['input'] && post['filter']
       content = "{{ #{post['input']} | #{post['filter']} }}"
     end
