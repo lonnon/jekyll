@@ -89,9 +89,10 @@ class TestPost < Test::Unit::TestCase
           @post.process(@real_file)
           @post.read_yaml(@source, @real_file)
           @post.transform
-          
-          assert_equal({"excerpt" => "<p>Excerpt part</p>", "remainder" => "<p>Everything else</p>"}, @post.data)
-          assert_equal "<p>Excerpt part</p><p>Everything else</p>", @post.content
+
+          assert_equal "<p>Excerpt part</p>", @post.excerpt
+          assert_equal "<p>Everything else</p>", @post.remainder
+          assert_equal "<p>Excerpt part</p>\n<div id='more' />\n<p>Everything else</p>", @post.content
         end
       end
 

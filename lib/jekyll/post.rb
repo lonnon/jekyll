@@ -18,7 +18,7 @@ module Jekyll
       name =~ MATCHER
     end
 
-    attr_accessor :site, :date, :slug, :ext, :published, :data, :content, :output, :tags
+    attr_accessor :site, :date, :slug, :ext, :published, :data, :content, :output, :tags, :excerpt, :remainder
     attr_writer :categories
 
     def categories
@@ -221,7 +221,9 @@ module Jekyll
         "next"       => self.next,
         "previous"   => self.previous,
         "tags"       => self.tags,
-        "content"    => self.content }.deep_merge(self.data)
+        "content"    => self.content,
+        "excerpt"    => self.excerpt,
+        "remainder"  => self.remainder }.deep_merge(self.data)
     end
 
     def inspect

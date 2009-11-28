@@ -23,8 +23,17 @@ module Jekyll
       
         self.data = YAML.load($1)
       end
-      
       self.data ||= {}
+
+      if self.is_a? Jekyll::Post
+        divider = /<!--\s*[Mm][Oo][Rr][Ee]\s*-->\s*\n/
+        if self.content =~ divider
+          self.excerpt, self.remainder = self.content.split($&, 2)
+          self.content = self.excerpt +
+                         "\n" + '<div id="more"></div>' + "\n" +
+                         self.remainder
+        end
+      end
     end
 
     # Transform the contents based on the file extension.
@@ -35,9 +44,17 @@ module Jekyll
       when 'textile'
         self.ext = ".html"
         self.content = self.site.textile(self.content)
+        if self.is_a? Jekyll::Post and self.excerpt
+          self.excerpt = self.site.textile(self.excerpt)
+          self.remainder = self.site.textile(self.remainder)
+        end
       when 'markdown'
         self.ext = ".html"
         self.content = self.site.markdown(self.content)
+        if self.is_a? Jekyll::Post and self.excerpt
+          self.excerpt = self.site.markdown(self.excerpt)
+          self.remainder = self.site.markdown(self.remainder)
+        end
       end
     end
 
@@ -70,6 +87,11 @@ module Jekyll
 
       # output keeps track of what will finally be written
       self.output = self.content
+      if self.is_a? Jekyll::Post
+        payload["page"].merge!({"content" => self.content,
+                                "excerpt" => self.excerpt,
+                                "remainder" => self.remainder})
+      end
 
       # recursively render layouts
       layout = layouts[self.data["layout"]]
