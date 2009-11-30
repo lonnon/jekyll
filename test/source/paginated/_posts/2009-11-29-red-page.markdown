@@ -1,0 +1,4 @@
+---
+title: Red page
+---
+But no blue page

@@ -29,7 +29,7 @@ require 'jekyll/albino'
 
 module Jekyll
   # Default options. Overriden by values in _config.yml or command-line opts.
-  # (Strings rather symbols used for compatability with YAML)
+  # Strings are used instead of symbols for YAML compatibility.
   DEFAULTS = {
     'auto'         => false,
     'server'       => false,
@@ -40,6 +40,7 @@ module Jekyll
 
     'lsi'          => false,
     'pygments'     => false,
+    'sass'         => false,
     'markdown'     => 'maruku',
     'permalink'    => 'date',
 

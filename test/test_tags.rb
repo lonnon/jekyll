@@ -14,9 +14,7 @@ class TestTags < Test::Unit::TestCase
     else
       payload = {"content_type" => "textile"}
     end
-
     @result = Liquid::Template.parse(content).render(payload, info)
-
     if markdown
       @result = site.markdown(@result)
     else
@@ -74,6 +72,7 @@ _FIGHT!_
 
 {% highlight ruby %}
 puts "3..2..1.."
+__FILE__
 {% endhighlight %}
 
 *FINISH HIM*

@@ -43,6 +43,10 @@ opts = OptionParser.new do |opts|
   opts.on("--pygments", "Use pygments to highlight code") do
     options['pygments'] = true
   end
+  
+  opts.on("--pygments-cache", "Path to cache pygments output in, for faster re-rendering") do |path|
+    options['pygments_cache'] = path
+  end
 
   opts.on("--rdiscount", "Use rdiscount gem for Markdown") do
     options['markdown'] = 'rdiscount'
@@ -62,6 +66,18 @@ opts = OptionParser.new do |opts|
     end
   end
 
+  opts.on("--multiviews", "Don't use .html in links since Apache has 'Options +MultiViews'") do |style|
+    options['multiviews'] = true
+  end
+
+  opts.on("--sass", "Use Sass from haml gem for CSS generation") do
+    options['sass'] = true
+  end
+  
+  opts.on("--haml", "Enable using Haml for posts and pages") do
+    options['haml'] = true
+  end
+  
   opts.on("--version", "Display current version") do
     puts "Jekyll " + Jekyll.version
     exit 0

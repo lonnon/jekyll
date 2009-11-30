@@ -1,8 +1,10 @@
 module Jekyll
 
   class Site
-    attr_accessor :config, :layouts, :posts, :categories, :exclude,
-                  :source, :dest, :lsi, :pygments, :permalink_style, :tags
+    attr_accessor :config, :layouts, :posts, :collated_posts,
+                  :categories, :tags, :source, :dest, :lsi, :pygments,
+                  :pygments_cache, :permalink_style, :sass,
+                  :post_defaults, :exclude
 
     # Initialize the site
     #   +config+ is a Hash containing site configurations details
@@ -15,8 +17,10 @@ module Jekyll
       self.dest            = config['destination']
       self.lsi             = config['lsi']
       self.pygments        = config['pygments']
+      self.pygments_cache  = config['pygments_cache']
       self.permalink_style = config['permalink'].to_sym
       self.exclude         = config['exclude'] || []
+      self.post_defaults   = config['post_defaults'] || {}
 
       self.reset
       self.setup
@@ -25,6 +29,7 @@ module Jekyll
     def reset
       self.layouts         = {}
       self.posts           = []
+      self.collated_posts  = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = Hash.new {|h,k| h[k] = [] } } }
       self.categories      = Hash.new { |hash, key| hash[key] = [] }
       self.tags            = Hash.new { |hash, key| hash[key] = [] }
     end
@@ -32,6 +37,34 @@ module Jekyll
     def setup
       # Check to see if LSI is enabled.
       require 'classifier' if self.lsi
+      
+      if self.config['sass']
+        begin
+          require 'sass'
+          self.sass = true
+          puts 'Using Sass for CSS generation'
+        rescue LoadError
+          puts 'You must have the haml gem installed first'
+        end
+      end
+      
+      if self.config['haml']
+        begin
+          require 'haml'
+          require 'jekyll/haml_helpers'
+          helpers = File.join(source, '_helpers.rb')
+          require helpers if File.exist?(helpers)
+          puts 'Enabled Haml'
+        rescue LoadError
+          puts 'You must have the haml gem installed first'
+        end
+      end
+      
+      if self.pygments_cache
+        require 'fileutils'
+        FileUtils.mkdir_p(pygments_cache)
+        require 'digest/md5'
+      end
 
       # Set the Markdown interpreter (and Maruku self.config, if necessary)
       case self.config['markdown']
@@ -94,6 +127,7 @@ module Jekyll
       self.reset
       self.read_layouts
       self.transform_pages
+      self.transform_sass if self.sass
       self.write_posts
     end
 
@@ -139,6 +173,7 @@ module Jekyll
       # second pass renders each post now that full site payload is available
       self.posts.each do |post|
         post.render(self.layouts, site_payload)
+        self.collated_posts[post.date.year][post.date.month][post.date.day].unshift(post)
       end
 
       self.categories.values.map { |ps| ps.sort! { |a, b| b <=> a} }
@@ -202,6 +237,28 @@ module Jekyll
       end
     end
 
+    # Transform all *.sass files from <dest> to css with the same name
+    # and delete source sass files.
+    # Returns nothing
+    def transform_sass(dir = '')
+      base = File.join(self.source, dir)
+      entries = Dir.entries(base)
+      entries = entries.reject { |e| ['.', '_'].include?(e[0..0]) }
+      directories = entries.select { |e| File.directory?(File.join(base, e)) }
+      directories.each { |d| transform_sass(File.join(dir, d)) }
+      files = entries.reject { |e| File.directory?(File.join(base, e)) }
+      files = files.select { |f| File.extname(File.join(base, f)) == ".sass" }
+      files.each do |f|
+        input = File.open(File.join(base, f), "r")
+        result = Sass::Engine.new(input.read, :style => :compact, :load_paths => base).render
+        FileUtils.mkdir_p(File.join(self.dest, dir))
+        output = File.open(File.join(self.dest, dir, f).gsub(/.sass\Z/, ".css"), "w") do |o|
+          o.write(result)
+        end
+        FileUtils.rm(File.join(self.dest, dir, f))
+      end
+    end
+
     # Constructs a hash map of Posts indexed by the specified Post attribute
     #
     # Returns {post_attr => [<Post>]}
@@ -218,13 +275,17 @@ module Jekyll
     #
     # Returns {"site" => {"time" => <Time>,
     #                     "posts" => [<Post>],
-    #                     "categories" => [<Post>]}
+    #                     "categories" => [<Post>],
+    #                     "tags" => [<Post>],
+    #                     "topics" => [<Post>] }}
     def site_payload
       {"site" => self.config.merge({
-          "time"       => Time.now,
-          "posts"      => self.posts.sort { |a,b| b <=> a },
-          "categories" => post_attr_hash('categories'),
-          "tags"       => post_attr_hash('tags')})}
+        "time" => Time.now,
+        "posts" => self.posts.sort { |a,b| b <=> a },
+        "categories" => post_attr_hash('categories'),
+        "tags" => post_attr_hash('tags'),
+        "topics" => post_attr_hash('topics')})
+      }
     end
 
     # Filter out any files/directories that are hidden or backup files (start
@@ -240,7 +301,7 @@ module Jekyll
     end
 
     # Paginates the blog's posts. Renders the index.html file into paginated directories, ie: page2, page3...
-    # and adds more wite-wide data
+    # and adds more site-wide data
     #
     # {"paginator" => { "page" => <Number>,
     #                   "per_page" => <Number>,
