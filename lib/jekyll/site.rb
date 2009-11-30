@@ -3,8 +3,7 @@ module Jekyll
   class Site
     attr_accessor :config, :layouts, :posts, :collated_posts,
                   :categories, :tags, :source, :dest, :lsi, :pygments,
-                  :pygments_cache, :permalink_style, :sass,
-                  :post_defaults, :exclude
+                  :permalink_style, :sass, :post_defaults, :exclude
 
     # Initialize the site
     #   +config+ is a Hash containing site configurations details
@@ -17,7 +16,6 @@ module Jekyll
       self.dest            = config['destination']
       self.lsi             = config['lsi']
       self.pygments        = config['pygments']
-      self.pygments_cache  = config['pygments_cache']
       self.permalink_style = config['permalink'].to_sym
       self.exclude         = config['exclude'] || []
       self.post_defaults   = config['post_defaults'] || {}
@@ -60,12 +58,6 @@ module Jekyll
         end
       end
       
-      if self.pygments_cache
-        require 'fileutils'
-        FileUtils.mkdir_p(pygments_cache)
-        require 'digest/md5'
-      end
-
       # Set the Markdown interpreter (and Maruku self.config, if necessary)
       case self.config['markdown']
         when 'rdiscount'

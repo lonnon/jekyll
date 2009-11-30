@@ -123,12 +123,6 @@ during the conversion:
 
   $ jekyll --pygments
   
-Highlighting a blog post can take a second or two, and with a lot of posts,
-it adds up. You can tell Jekyll to cache pygments output in a directory for
-faster re-rendering:
-
-  $ jekyll --pygments-cache [PATH]
-
 h3. Markdown Processor
 
 By default, Jekyll uses "Maruku":http://maruku.rubyforge.org (pure Ruby) for
